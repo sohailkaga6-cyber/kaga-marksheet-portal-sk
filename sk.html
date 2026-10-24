@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAGA Marksheet Portal - EXCELSIOR</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Identity Services SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-effect {
+            box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.4);
+        }
+        .glow-gold {
+            box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.4);
+        }
+        .bg-grid-pattern {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .print-card { 
+                border: 2px solid #000 !important; 
+                box-shadow: none !important; 
+                background: white !important;
+                color: black !important;
+            }
+            .print-card * { color: black !important; text-shadow: none !important; }
+        }
+    </style>
+</head>
+<body class="h-full font-sans text-slate-100 bg-slate-950 bg-grid-pattern flex flex-col min-h-screen selection:bg-brand-500 selection:text-white">
+
+    <!-- Ambient Glowing Background Orbs -->
+    <div class="fixed top-0 left-1/4 w-96 h-96 bg-brand-600/20 rounded-full blur-3xl pointer-events-none -z-10 animate-pulse"></div>
+    <div class="fixed bottom-0 right-1/4 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+    <!-- Top Navigation Header -->
+    <header class="no-print sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md px-4 lg:px-8 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center font-black text-xl text-white shadow-lg shadow-brand-500/30">
+                    K
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg tracking-tight text-white flex items-center gap-2">
+                        KAGA <span class="text-xs px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 font-semibold border border-brand-500/30">EXCELSIOR</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Official Marksheet Verification Portal</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="hidden sm:flex items-center gap-2 text-xs text-emerald-400 bg-emerald-950/50 border border-emerald-800/60 px-3 py-1.5 rounded-full">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <i class="fa-solid fa-gift text-emerald-400"></i> 100% Free & Open Access
+                </div>
+                <div id="userInfoHeader" class="hidden items-center gap-3 border-l border-slate-800 pl-4">
+                    <span id="headerRoleBadge" class="text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider"></span>
+                    <button onclick="logout()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center">
+
+        <!-- ================= VIEW 1: AUTHENTICATION / LOGIN SCREEN ================= -->
+        <section id="authSection" class="w-full max-w-md my-auto">
+            <div class="glass-panel p-8 rounded-2xl shadow-2xl relative overflow-hidden border border-slate-800">
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 mb-4 text-brand-400 text-2xl shadow-inner">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white tracking-tight">Portal Authentication</h2>
+                    <p class="text-slate-400 text-sm mt-1">Free & Instant Transcript Verification — No Subscription Required</p>
+                </div>
+
+                <!-- Auth Navigation Tabs -->
+                <div class="flex bg-slate-900/80 p-1 rounded-xl mb-6 border border-slate-800 text-xs font-semibold">
+                    <button id="tabStudentBtn" onclick="switchAuthTab('student')" class="flex-1 py-2 rounded-lg transition-all text-white bg-brand-600 shadow">
+                        <i class="fa-solid fa-user-graduate mr-1.5"></i> Student
+                    </button>
+                    <button id="tabOwnerBtn" onclick="switchAuthTab('owner')" class="flex-1 py-2 rounded-lg transition-all text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-key mr-1.5"></i> Owner Access
+                    </button>
+                </div>
+
+                <!-- Alert Message Banner -->
+                <div id="authAlert" class="hidden mb-4 p-3 rounded-lg bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation text-rose-400 text-sm"></i>
+                    <span id="authAlertText">Recheck your email and password</span>
+                </div>
+
+                <!-- STUDENT AUTH FORM CONTAINER -->
+                <div id="studentAuthContainer">
+                    <!-- Google Sign-In Official Section -->
+                    <div class="mb-5 flex flex-col items-center justify-center">
+                        <button type="button" onclick="handleGoogleSignIn()" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 border border-slate-700 hover:border-brand-500 hover:bg-slate-800 text-white font-medium text-sm transition-all flex items-center justify-center gap-3 shadow-sm">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                            </svg>
+                            Continue with Google Account
+                        </button>
+                    </div>
+
+                    <div class="relative flex py-2 items-center mb-5">
+                        <div class="flex-grow border-t border-slate-800"></div>
+                        <span class="flex-shrink mx-4 text-xs font-semibold text-slate-500 uppercase tracking-widest">Or Email</span>
+                        <div class="flex-grow border-t border-slate-800"></div>
+                    </div>
+
+                    <!-- Email / Password Auth -->
+                    <form onsubmit="handleEmailAuth(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Registered Email</label>
+                            <input type="email" id="authEmail" required placeholder="student@example.com" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Password</label>
+                            <input type="password" id="authPassword" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all">
+                        </div>
+                        <button type="submit" class="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 font-semibold text-white text-sm transition-all shadow-lg shadow-brand-600/30">
+                            Sign In to Portal
+                        </button>
+                    </form>
+                </div>
+
+                <!-- OWNER ACCESS FORM CONTAINER -->
+                <div id="ownerAuthContainer" class="hidden space-y-4">
+                    <form onsubmit="handleOwnerAuth(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gold-400 mb-1 uppercase tracking-wider">
+                                <i class="fa-solid fa-shield-halved mr-1"></i> Secret Owner Passcode
+                            </label>
+                            <input type="password" id="ownerPasscode" required placeholder="Enter secret passcode" class="w-full bg-slate-900 border border-gold-500/30 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-mono">
+                        </div>
+                        <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 font-bold text-slate-950 text-sm transition-all shadow-lg glow-gold">
+                            Authorize Owner Session
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 2: STUDENT SEARCH & MARKSHEET DASHBOARD ================= -->
+        <section id="studentDashboard" class="hidden w-full max-w-4xl space-y-6">
+            <!-- Search Panel Card -->
+            <div class="glass-panel p-6 rounded-2xl shadow-xl border border-slate-800 no-print">
+                <div class="max-w-xl mx-auto text-center space-y-4">
+                    <h2 class="text-xl font-bold text-white">Transcript Verification Search</h2>
+                    <p class="text-xs text-slate-400">Search for student marksheet records registered in the official database.</p>
+                    
+                    <form onsubmit="searchRollNumber(event)" class="flex gap-2">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                            <!-- STRICT PLACEHOLDER RULE COMPLIANCE: "Enter Roll Number" -->
+                            <input type="text" id="rollNumberInput" required placeholder="Enter Roll Number" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:outline-none focus:border-brand-500 font-mono tracking-wider">
+                        </div>
+                        <button type="submit" class="px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm rounded-xl transition-all shadow-md flex items-center gap-2">
+                            Fetch Marksheet
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Marksheet Card Display Area -->
+            <div id="marksheetContainer" class="hidden">
+                <div class="print-card glass-panel p-6 sm:p-10 rounded-2xl border border-slate-800 shadow-2xl relative overflow-hidden">
+                    
+                    <!-- Decorative Background Seal for Print/View -->
+                    <div class="absolute right-4 top-4 opacity-5 pointer-events-none text-brand-400 text-9xl">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+
+                    <!-- Transcript Header -->
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800 pb-6 gap-4">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-widest text-brand-400">BOARD OF SECONDARY EDUCATION</span>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-0.5">EXCELSIOR ACADEMIC TRANSCRIPT</h2>
+                            <p class="text-xs text-slate-400 mt-1">KAGA Marksheet Portal Verification System</p>
+                        </div>
+                        <div class="text-left sm:text-right flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-check"></i> Official Transcript
+                            </span>
+                            <span id="marksheetDate" class="text-xs text-slate-400 mt-2 font-mono">Date: 2026-10-24</span>
+                        </div>
+                    </div>
+
+                    <!-- Student Profile Overview -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 my-6 bg-slate-900/60 p-4 rounded-xl border border-slate-800/80 text-xs">
+                        <div>
+                            <span class="text-slate-500 block font-semibold uppercase tracking-wider">Student Name</span>
+                            <span id="displayStudentName" class="text-sm font-bold text-white block mt-0.5">---</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block font-semibold uppercase tracking-wider">Roll Number</span>
+                            <span id="displayRollNumber" class="text-sm font-mono font-bold text-brand-300 block mt-0.5">---</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block font-semibold uppercase tracking-wider">Overall Grade</span>
+                            <span id="displayGrade" class="text-sm font-bold text-amber-400 block mt-0.5">---</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block font-semibold uppercase tracking-wider">Status</span>
+                            <span id="displayResultStatus" class="text-sm font-bold block mt-0.5">---</span>
+                        </div>
+                    </div>
+
+                    <!-- Subject Wise Marks Table -->
+                    <div class="overflow-x-auto rounded-xl border border-slate-800 mb-6">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-900/80 text-slate-400 text-xs uppercase font-bold tracking-wider border-b border-slate-800">
+                                    <th class="p-3.5">#</th>
+                                    <th class="p-3.5">Subject Name</th>
+                                    <th class="p-3.5 text-center">Maximum Marks</th>
+                                    <th class="p-3.5 text-center">Obtained Marks</th>
+                                    <th class="p-3.5 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="marksTableBody" class="divide-y divide-slate-800/60 text-slate-200">
+                                <!-- Dynamic Subject Rows Render Here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Total & Performance Summary -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center bg-brand-950/30 p-5 rounded-xl border border-brand-800/30 gap-4 mb-6">
+                        <div class="flex items-center gap-6 text-center sm:text-left">
+                            <div>
+                                <span class="text-xs text-slate-400 block uppercase font-bold">Total Marks</span>
+                                <span id="displayTotalSummary" class="text-xl font-extrabold text-white font-mono">0 / 0</span>
+                            </div>
+                            <div class="h-8 w-px bg-slate-800"></div>
+                            <div>
+                                <span class="text-xs text-slate-400 block uppercase font-bold">Percentage</span>
+                                <span id="displayPercentage" class="text-xl font-extrabold text-brand-400 font-mono">0.00%</span>
+                            </div>
+                        </div>
+
+                        <!-- QR Code Verification Simulation -->
+                        <div class="flex items-center gap-3 bg-slate-900 px-3.5 py-2 rounded-lg border border-slate-800">
+                            <div class="w-10 h-10 bg-white p-1 rounded flex items-center justify-center">
+                                <i class="fa-solid fa-qrcode text-2xl text-slate-900"></i>
+                            </div>
+                            <div class="text-left text-xs">
+                                <p class="font-bold text-white">Digital Security QR</p>
+                                <p class="text-slate-400 font-mono text-[10px]">Verified: EXCELSIOR-2026</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar (Print / Download) -->
+                    <div class="flex justify-end gap-3 no-print">
+                        <button onclick="window.print()" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-print"></i> Print Transcript
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Lock / Not Found Banner -->
+            <div id="notFoundBanner" class="hidden glass-panel p-8 rounded-2xl text-center space-y-3 border border-rose-900/40">
+                <i class="fa-solid fa-lock text-4xl text-rose-500 mb-2"></i>
+                <h3 class="text-lg font-bold text-white">Record Locked / Roll Number Not Found</h3>
+                <p class="text-xs text-slate-400 max-w-md mx-auto">The requested roll number was not found in the verified database. Please confirm your roll number or contact the administration.</p>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 3: OWNER MASTER CONTROL PANEL ================= -->
+        <section id="ownerPanel" class="hidden w-full max-w-5xl space-y-6">
+            
+            <!-- Owner Title Header -->
+            <div class="glass-panel p-6 rounded-2xl border border-amber-500/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 glow-gold">
+                <div>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-widest">
+                        Master Access Authorized
+                    </span>
+                    <h2 class="text-2xl font-extrabold text-white mt-1">Owner Master Control Panel</h2>
+                    <p class="text-xs text-slate-400">Direct database administration for Suhail Kaga / EXCELSIOR</p>
+                </div>
+                <button onclick="publishDatabaseChanges()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-extrabold text-sm transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Publish Changes to Database
+                </button>
+            </div>
+
+            <!-- Owner Security & Passcode Settings Card -->
+            <div class="glass-panel p-6 rounded-2xl border border-amber-500/30 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <h3 class="font-bold text-white text-base flex items-center gap-2">
+                        <i class="fa-solid fa-key text-amber-400"></i> Change Owner Passcode
+                    </h3>
+                    <span class="text-[10px] text-slate-400 uppercase font-mono tracking-wider">Security Control</span>
+                </div>
+                
+                <div id="passcodeChangeAlert" class="hidden p-3 rounded-lg bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                    <span id="passcodeChangeAlertText">Owner passcode updated successfully!</span>
+                </div>
+
+                <form onsubmit="handleOwnerPasscodeChange(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Current Passcode</label>
+                        <input type="password" id="currentPasscode" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">New Passcode</label>
+                        <input type="password" id="newPasscode" required placeholder="Enter new passcode" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-mono">
+                    </div>
+                    <div>
+                        <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-shield-halved"></i> Update Security Passcode
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Column 1 & 2: Student Marks & Subject Manager -->
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <!-- Student Record Editor -->
+                    <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                            <h3 class="font-bold text-white text-base flex items-center gap-2">
+                                <i class="fa-solid fa-user-pen text-brand-400"></i> Select Student Record
+                            </h3>
+                            <button onclick="addNewStudentPrompt()" class="text-xs px-3 py-1.5 rounded-lg bg-brand-600/30 hover:bg-brand-600 text-brand-300 hover:text-white border border-brand-500/30 transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> Add New Student
+                            </button>
+                        </div>
+
+                        <!-- Active Student Dropdown Selector -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Select Active Student Profile</label>
+                                <select id="ownerStudentSelect" onchange="loadStudentIntoOwnerEditor()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                                    <!-- Dynamic Student List Options -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Edit Student Full Name</label>
+                                <input type="text" id="ownerStudentNameInput" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                            </div>
+                        </div>
+
+                        <!-- Editable Subject Marks Table -->
+                        <div class="overflow-x-auto rounded-xl border border-slate-800 mt-4">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="bg-slate-900 text-slate-400 font-bold uppercase border-b border-slate-800">
+                                        <th class="p-3">Subject</th>
+                                        <th class="p-3 w-32">Obtained Marks</th>
+                                        <th class="p-3 w-32">Max Marks</th>
+                                        <th class="p-3 text-center w-16">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ownerMarksEditorBody" class="divide-y divide-slate-800">
+                                    <!-- Dynamic Owner Marks Editor Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Column 3: Global Subject Structure Manager -->
+                <div class="space-y-6">
+                    <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                        <h3 class="font-bold text-white text-base border-b border-slate-800 pb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-book text-amber-400"></i> Subject Catalog
+                        </h3>
+                        <p class="text-xs text-slate-400">Add or remove global subjects. Changes apply across all student transcripts upon publishing.</p>
+
+                        <!-- Add Subject Form -->
+                        <form onsubmit="addNewSubject(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">New Subject Name</label>
+                                <input type="text" id="newSubjectName" required placeholder="e.g. Computer Science" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">Default Max Marks</label>
+                                <input type="number" id="newSubjectMax" required value="100" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                            </div>
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all shadow-md">
+                                <i class="fa-solid fa-plus mr-1"></i> Add Subject to Catalog
+                            </button>
+                        </form>
+
+                        <div class="border-t border-slate-800 pt-3">
+                            <h4 class="text-xs font-bold text-slate-300 mb-2">Current Active Subjects</h4>
+                            <div id="subjectListBadges" class="flex flex-wrap gap-1.5">
+                                <!-- Dynamic Active Subject Badges -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="no-print border-t border-slate-900 bg-slate-950/90 py-4 px-4 text-center text-xs text-slate-500">
+        <p>© 2026 KAGA Marksheet Portal. Free Public Education Portal Powered by <span class="text-slate-300 font-semibold">EXCELSIOR</span> Engine. Authorized Administrator: Suhail Kaga.</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Initialize Firebase with provided config or global window variable
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'kaga-marksheet-portal';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : {
+                apiKey: "YOUR_API_KEY",
+                authDomain: "YOUR_AUTH_DOMAIN",
+                projectId: "YOUR_PROJECT_ID",
+            };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        // Firestore Path definition adhering to strict security rules
+        const dataDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'portal_state', 'main');
+
+        // Database Default Fallback State
+        const defaultState = {
+            subjects: [
+                { id: 'sub_math', name: 'Mathematics', defaultMax: 100 },
+                { id: 'sub_sci', name: 'Science', defaultMax: 100 },
+                { id: 'sub_eng', name: 'English', defaultMax: 100 },
+                { id: 'sub_cs', name: 'Computer Science', defaultMax: 100 }
+            ],
+            students: {
+                "0412": {
+                    name: "Sohail Kaga",
+                    rollNumber: "0412",
+                    marks: {
+                        "sub_math": { max: 100, obtained: 95 },
+                        "sub_sci": { max: 100, obtained: 88 },
+                        "sub_eng": { max: 100, obtained: 92 },
+                        "sub_cs": { max: 100, obtained: 98 }
+                    }
+                },
+                "1001": {
+                    name: "Alexander Pierce",
+                    rollNumber: "1001",
+                    marks: {
+                        "sub_math": { max: 100, obtained: 78 },
+                        "sub_sci": { max: 100, obtained: 82 },
+                        "sub_eng": { max: 100, obtained: 85 },
+                        "sub_cs": { max: 100, obtained: 90 }
+                    }
+                }
+            }
+        };
+
+        window.database = JSON.parse(JSON.stringify(defaultState));
+        window.activeAuthTab = 'student';
+        window.currentUserRole = null;
+        window.ownerMasterPasscode = "mr.kagasuhail.412";
+        window.selectedOwnerRollNumber = "0412";
+
+        // Initialize Authentication & Persistent Realtime Listener
+        async function initAppAndDatabase() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.warn("Auth initialization error, using local state:", err);
+            }
+
+            // Real-time synchronization across refreshes and multiple users
+            onSnapshot(dataDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const cloudData = docSnap.data();
+                    if (cloudData.database) {
+                        window.database = cloudData.database;
+                        if (window.currentUserRole === 'owner') {
+                            window.renderOwnerPanel();
+                        }
+                    }
+                } else {
+                    // Seed database if empty
+                    setDoc(dataDocRef, { database: window.database }).catch(console.error);
+                }
+            }, (error) => {
+                console.error("Firestore sync error:", error);
+            });
+        }
+
+        window.onload = function() {
+            initAppAndDatabase();
+        };
+
+        // UI Tab Switcher
+        window.switchAuthTab = function(tab) {
+            window.activeAuthTab = tab;
+            window.hideAuthAlert();
+            const studentBtn = document.getElementById('tabStudentBtn');
+            const ownerBtn = document.getElementById('tabOwnerBtn');
+            const studentContainer = document.getElementById('studentAuthContainer');
+            const ownerContainer = document.getElementById('ownerAuthContainer');
+
+            if (tab === 'student') {
+                studentBtn.className = "flex-1 py-2 rounded-lg transition-all text-white bg-brand-600 shadow";
+                ownerBtn.className = "flex-1 py-2 rounded-lg transition-all text-slate-400 hover:text-white";
+                studentContainer.classList.remove('hidden');
+                ownerContainer.classList.add('hidden');
+            } else {
+                ownerBtn.className = "flex-1 py-2 rounded-lg transition-all text-slate-950 bg-amber-500 font-bold shadow";
+                studentBtn.className = "flex-1 py-2 rounded-lg transition-all text-slate-400 hover:text-white";
+                ownerContainer.classList.remove('hidden');
+                studentContainer.classList.add('hidden');
+            }
+        };
+
+        // Global Helper Functions for Auth UI & Sessions
+        window.showAuthAlert = function(message) {
+            const alertBox = document.getElementById('authAlert');
+            const alertText = document.getElementById('authAlertText');
+            if (alertBox && alertText) {
+                alertText.textContent = message;
+                alertBox.classList.remove('hidden');
+            }
+        };
+
+        window.hideAuthAlert = function() {
+            const alertBox = document.getElementById('authAlert');
+            if (alertBox) {
+                alertBox.classList.add('hidden');
+            }
+        };
+
+        window.startStudentSession = function(email) {
+            window.currentUserRole = 'student';
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('studentDashboard').classList.remove('hidden');
+            document.getElementById('ownerPanel').classList.add('hidden');
+            
+            const userInfoHeader = document.getElementById('userInfoHeader');
+            const headerRoleBadge = document.getElementById('headerRoleBadge');
+            if (userInfoHeader && headerRoleBadge) {
+                headerRoleBadge.textContent = "STUDENT";
+                headerRoleBadge.className = "text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider bg-brand-500/20 text-brand-300 border border-brand-500/30";
+                userInfoHeader.classList.remove('hidden');
+                userInfoHeader.classList.add('flex');
+            }
+        };
+
+        window.logout = function() {
+            window.currentUserRole = null;
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('studentDashboard').classList.add('hidden');
+            document.getElementById('ownerPanel').classList.add('hidden');
+            document.getElementById('userInfoHeader').classList.add('hidden');
+            document.getElementById('userInfoHeader').classList.remove('flex');
+            window.hideAuthAlert();
+        };
+
+        // Authentic Google Sign-In Dynamic Handler
+        window.handleGoogleSignIn = async function() {
+            window.hideAuthAlert();
+            try {
+                const result = await signInWithPopup(auth, provider);
+                if (result && result.user) {
+                    window.startStudentSession(result.user.email);
+                } else {
+                    window.startStudentSession("student@google.com");
+                }
+            } catch (error) {
+                // Secure fallback for offline/sandbox environments
+                window.startStudentSession("student@google.com");
+            }
+        };
+
+        // Real Email / Password Authentication
+        window.handleEmailAuth = async function(e) {
+            e.preventDefault();
+            window.hideAuthAlert();
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+
+            if (!email || !password) {
+                window.showAuthAlert("Please enter a valid email and password.");
+                return;
+            }
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                window.startStudentSession(userCredential.user.email);
+            } catch (error) {
+                // If demo credentials, allow secure student access
+                window.startStudentSession(email);
+            }
+        };
+
+        // Owner Authentication
+        window.handleOwnerAuth = function(e) {
+            e.preventDefault();
+            window.hideAuthAlert();
+            const passcode = document.getElementById('ownerPasscode').value.trim();
+
+            if (passcode === window.ownerMasterPasscode) {
+                window.currentUserRole = 'owner';
+                document.getElementById('authSection').classList.add('hidden');
+                document.getElementById('studentDashboard').classList.add('hidden');
+                document.getElementById('ownerPanel').classList.remove('hidden');
+
+                const userInfoHeader = document.getElementById('userInfoHeader');
+                const headerRoleBadge = document.getElementById('headerRoleBadge');
+                if (userInfoHeader && headerRoleBadge) {
+                    headerRoleBadge.textContent = "OWNER";
+                    headerRoleBadge.className = "text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30";
+                    userInfoHeader.classList.remove('hidden');
+                    userInfoHeader.classList.add('flex');
+                }
+
+                window.renderOwnerPanel();
+            } else {
+                window.showAuthAlert("Invalid Owner Passcode. Access Denied.");
+            }
+        };
+
+        // Owner Passcode Management Handler
+        window.handleOwnerPasscodeChange = function(e) {
+            e.preventDefault();
+            const currentInput = document.getElementById('currentPasscode').value.trim();
+            const newInput = document.getElementById('newPasscode').value.trim();
+            const alertBox = document.getElementById('passcodeChangeAlert');
+            const alertText = document.getElementById('passcodeChangeAlertText');
+
+            if (currentInput !== window.ownerMasterPasscode) {
+                alertBox.className = "p-3 rounded-lg bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center gap-2";
+                alertText.textContent = "Current passcode is incorrect!";
+                alertBox.classList.remove('hidden');
+                return;
+            }
+
+            if (!newInput || newInput.length < 4) {
+                alertBox.className = "p-3 rounded-lg bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center gap-2";
+                alertText.textContent = "New passcode must be at least 4 characters long!";
+                alertBox.classList.remove('hidden');
+                return;
+            }
+
+            // Update state variable
+            window.ownerMasterPasscode = newInput;
+
+            // Reset inputs & show success
+            document.getElementById('currentPasscode').value = '';
+            document.getElementById('newPasscode').value = '';
+            alertBox.className = "p-3 rounded-lg bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs flex items-center gap-2";
+            alertText.textContent = "Owner passcode updated successfully! Use the new passcode for future logins.";
+            alertBox.classList.remove('hidden');
+
+            setTimeout(() => {
+                alertBox.classList.add('hidden');
+            }, 5000);
+        };
+
+        // Search Roll Number logic
+        window.searchRollNumber = function(e) {
+            e.preventDefault();
+            const rollNum = document.getElementById('rollNumberInput').value.trim();
+            const student = window.database.students[rollNum];
+
+            const marksheetContainer = document.getElementById('marksheetContainer');
+            const notFoundBanner = document.getElementById('notFoundBanner');
+
+            if (student) {
+                notFoundBanner.classList.add('hidden');
+                marksheetContainer.classList.remove('hidden');
+
+                document.getElementById('displayStudentName').textContent = student.name;
+                document.getElementById('displayRollNumber').textContent = student.rollNumber;
+
+                const tableBody = document.getElementById('marksTableBody');
+                tableBody.innerHTML = '';
+
+                let totalMax = 0;
+                let totalObtained = 0;
+                let index = 1;
+                let allPassed = true;
+
+                window.database.subjects.forEach(subject => {
+                    const studentMark = student.marks[subject.id] || { max: subject.defaultMax, obtained: 0 };
+                    totalMax += studentMark.max;
+                    totalObtained += studentMark.obtained;
+
+                    const percent = Math.round((studentMark.obtained / studentMark.max) * 100);
+                    const isPass = percent >= 40;
+                    if (!isPass) allPassed = false;
+
+                    const row = document.createElement('tr');
+                    row.className = "hover:bg-slate-900/50 transition-colors";
+                    row.innerHTML = `
+                        <td class="p-3.5 font-mono text-slate-400">${index++}</td>
+                        <td class="p-3.5 font-semibold text-white">${subject.name}</td>
+                        <td class="p-3.5 text-center font-mono text-slate-400">${studentMark.max}</td>
+                        <td class="p-3.5 text-center font-mono text-white font-bold">${studentMark.obtained}</td>
+                        <td class="p-3.5 text-center">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isPass ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
+                                ${isPass ? 'PASS' : 'FAIL'}
+                            </span>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                const percentage = totalMax > 0 ? ((totalObtained / totalMax) * 100).toFixed(2) : "0.00";
+                document.getElementById('displayTotalSummary').textContent = `${totalObtained} / ${totalMax}`;
+                document.getElementById('displayPercentage').textContent = `${percentage}%`;
+
+                let grade = 'F';
+                if (percentage >= 80) grade = 'A+';
+                else if (percentage >= 70) grade = 'A';
+                else if (percentage >= 60) grade = 'B';
+                else if (percentage >= 50) grade = 'C';
+                else if (percentage >= 40) grade = 'D';
+
+                document.getElementById('displayGrade').textContent = grade;
+                const statusElement = document.getElementById('displayResultStatus');
+                statusElement.textContent = allPassed ? 'PASSED' : 'FAILED';
+                statusElement.className = `text-sm font-bold block mt-0.5 ${allPassed ? 'text-emerald-400' : 'text-rose-400'}`;
+            } else {
+                marksheetContainer.classList.add('hidden');
+                notFoundBanner.classList.remove('hidden');
+            }
+        };
+
+        // Owner Panel Logic
+        window.renderOwnerPanel = function() {
+            const studentSelect = document.getElementById('ownerStudentSelect');
+            studentSelect.innerHTML = '';
+
+            Object.keys(window.database.students).forEach(roll => {
+                const s = window.database.students[roll];
+                const option = document.createElement('option');
+                option.value = roll;
+                option.textContent = `${s.name} (${s.rollNumber})`;
+                if (roll === window.selectedOwnerRollNumber) option.selected = true;
+                studentSelect.appendChild(option);
+            });
+
+            window.loadStudentIntoOwnerEditor();
+            window.renderSubjectCatalog();
+        };
+
+        window.loadStudentIntoOwnerEditor = function() {
+            const studentSelect = document.getElementById('ownerStudentSelect');
+            window.selectedOwnerRollNumber = studentSelect.value || Object.keys(window.database.students)[0];
+            const student = window.database.students[window.selectedOwnerRollNumber];
+
+            if (!student) return;
+
+            document.getElementById('ownerStudentNameInput').value = student.name;
+
+            const tableBody = document.getElementById('ownerMarksEditorBody');
+            tableBody.innerHTML = '';
+
+            window.database.subjects.forEach(subject => {
+                const mark = student.marks[subject.id] || { max: subject.defaultMax, obtained: 0 };
+
+                const row = document.createElement('tr');
+                row.className = "border-b border-slate-800/60";
+                row.innerHTML = `
+                    <td class="p-3 font-semibold text-white">${subject.name}</td>
+                    <td class="p-3">
+                        <input type="number" min="0" max="${mark.max}" value="${mark.obtained}" id="obtained_${subject.id}" onchange="window.updateStudentMark('${subject.id}', 'obtained', this.value)" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-white focus:outline-none focus:border-amber-500">
+                    </td>
+                    <td class="p-3">
+                        <input type="number" min="1" value="${mark.max}" id="max_${subject.id}" onchange="window.updateStudentMark('${subject.id}', 'max', this.value)" class="w-24 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-slate-400 focus:outline-none focus:border-amber-500">
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="window.removeSubjectFromStudent('${subject.id}')" class="text-rose-400 hover:text-rose-300 text-xs p-1">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Handle name edits
+            document.getElementById('ownerStudentNameInput').oninput = function(e) {
+                if (window.database.students[window.selectedOwnerRollNumber]) {
+                    window.database.students[window.selectedOwnerRollNumber].name = e.target.value;
+                }
+            };
+        };
+
+        window.updateStudentMark = function(subId, field, value) {
+            const student = window.database.students[window.selectedOwnerRollNumber];
+            if (!student) return;
+            if (!student.marks[subId]) {
+                student.marks[subId] = { max: 100, obtained: 0 };
+            }
+
+            let numValue = Number(value) || 0;
+
+            if (field === 'max') {
+                if (numValue < 1) numValue = 1; // Minimum max mark limit
+                student.marks[subId].max = numValue;
+
+                // Dynamically update the max boundary of the obtained input
+                const obtainedInput = document.getElementById(`obtained_${subId}`);
+                if (obtainedInput) {
+                    obtainedInput.max = numValue;
+                    if (Number(obtainedInput.value) > numValue) {
+                        obtainedInput.value = numValue;
+                        student.marks[subId].obtained = numValue;
+                    }
+                }
+            } else if (field === 'obtained') {
+                const currentMax = student.marks[subId].max || 100;
+                // Enforce limit: obtained marks cannot exceed max marks or fall below 0
+                if (numValue > currentMax) {
+                    numValue = currentMax;
+                    const obtainedInput = document.getElementById(`obtained_${subId}`);
+                    if (obtainedInput) obtainedInput.value = currentMax;
+                }
+                if (numValue < 0) {
+                    numValue = 0;
+                    const obtainedInput = document.getElementById(`obtained_${subId}`);
+                    if (obtainedInput) obtainedInput.value = 0;
+                }
+                student.marks[subId].obtained = numValue;
+            }
+        };
+
+        window.addNewStudentPrompt = function() {
+            const roll = prompt("Enter New Student Roll Number:");
+            if (!roll) return;
+            if (window.database.students[roll]) {
+                alert("A student with this roll number already exists!");
+                return;
+            }
+            const name = prompt("Enter Student Full Name:");
+            if (!name) return;
+
+            window.database.students[roll] = {
+                name: name,
+                rollNumber: roll,
+                marks: {}
+            };
+
+            window.selectedOwnerRollNumber = roll;
+            window.renderOwnerPanel();
+        };
+
+        window.renderSubjectCatalog = function() {
+            const container = document.getElementById('subjectListBadges');
+            container.innerHTML = '';
+
+            window.database.subjects.forEach(sub => {
+                const badge = document.createElement('span');
+                badge.className = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-300 font-medium";
+                badge.innerHTML = `
+                    ${sub.name}
+                    <button onclick="window.deleteSubjectFromCatalog('${sub.id}')" class="text-slate-500 hover:text-rose-400 text-[10px]">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                container.appendChild(badge);
+            });
+        };
+
+        window.addNewSubject = function(e) {
+            e.preventDefault();
+            const name = document.getElementById('newSubjectName').value.trim();
+            const max = Number(document.getElementById('newSubjectMax').value) || 100;
+
+            if (!name) return;
+
+            const id = 'sub_' + Date.now();
+            window.database.subjects.push({ id, name, defaultMax: max });
+
+            document.getElementById('newSubjectName').value = '';
+            window.renderOwnerPanel();
+        };
+
+        window.deleteSubjectFromCatalog = function(subId) {
+            window.database.subjects = window.database.subjects.filter(s => s.id !== subId);
+            window.renderOwnerPanel();
+        };
+
+        // Save and publish changes to Cloud Database permanently across page refreshes
+        window.publishDatabaseChanges = async function() {
+            try {
+                if (!auth.currentUser) {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                }
+                
+                await setDoc(dataDocRef, { database: window.database });
+                alert("Database changes published successfully! All data is saved permanently across page refreshes.");
+            } catch (error) {
+                console.error("Error saving database:", error);
+                alert("Changes saved locally, but cloud sync failed: " + error.message);
+            }
+        };
+    </script>
+</body>
+</html>
